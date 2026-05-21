@@ -66,12 +66,18 @@ def evaluate(cases_path: str, output_path: str, prompt_version: str = "v1"):
             answer = agent.run(case["question"])
             elapsed = time.time() - t0
             passed = check_keywords(answer, case["expected_keywords"])
+            tool_match = all(
+                t in agent.last_used_tools
+                for t in case.get("expected_tools", [])
+            )
             results.append({
                 "id": case["id"],
                 "difficulty": case["difficulty"],
                 "question": case["question"],
                 "answer": answer[:200],   # 截断防止 CSV 太长
                 "passed": passed,
+                "tool_match": tool_match,
+                "used_tools": ",".join(agent.last_used_tools),
                 "iterations": agent.last_iteration_count,
                 "tokens": agent.last_token_count,
                 "elapsed_sec": round(elapsed, 2),
